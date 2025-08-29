@@ -14,23 +14,38 @@ This can be commonally used if you have a secondary guild rank that has a requir
 Another thing it attempts to automate is kicking the lowest lvl gexp or ratio of the two, members from the guild. This is only really made to find low level players mainly while ingame. Its a bit easier and more live than skykings so it speeds up the proccess of recruiting new members.
 
 The main commands that do something are
+
 /gu lobby
+
 /gu player <Username>
+
 /gu trusted
+
 /gu shiftpunch
+
 /kickq <xp, lvl, ratio>
+
 /gu apicount 
+
 /gu help
 
 I plan to add a settings gui in the future (its already in progress) but for the time being most of the congifuration comes from commands.
 
 /gu api <key> | This is how you set your api key that will be used for all the hypixel api calls
+
 /gu minlevel <lvl> | The lowest level players to check for guild information when using /gu lobby
+
 /gu reply4guilded | Toggles if /gu lobby only shows you people who are not in a guild or if it shows you anyones guild info above the minimum lvel
+
 /gu kickqlength | Sets how many people to show in /kickq up to 125 to see the whoe guilds ranking
 
 Trusted Commands:
+
 /gu defaultrank <rank name> | For most guilds this is just "Member" but you can change it to whatever if its not for your guild
+
 /gu trustedrank <rank name> | Same as default rank but lets you set the name of your trusted rank
+
 /gu trustlevel <lvl> | Sets what level someone needs to be to be your guilds Trusted rank
+
 /gu trusttime <time in days> | Sets the amount of time in days someone has to be in the guild to have your guilds Trusted rank
+
