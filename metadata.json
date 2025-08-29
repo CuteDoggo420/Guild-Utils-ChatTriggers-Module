@@ -1,0 +1,7 @@
+{
+  "name": "GuildUtils",
+  "creator": "CuteDoggo420",
+  "version": "1.2",
+  "description": "Collection of guild-related utilities for Skyblock. Use /gu help for commands.",
+  "entry": "index.js"
+}
