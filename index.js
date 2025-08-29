@@ -5,16 +5,64 @@ let minLevel = 200;
 let apiKey = "";
 let defaultrank = "Member";
 let trustlevel = 250;
-let trusttime = 30;
-let kickqLength = 25;
-let shiftPunchEnabled = false;
+let trusttime = 30; 
+let kickqLength = 25; 
+let shiftPunchEnabled = false; 
 let apiRequestCount = 0;
 let apiRequestWarned = false;
 let kickqApiRequests = 0;
 let kickqApiWarned = false;
-
+let disbandTimeout = null;
+let lobbyClick2P = true;
+let lobbyAutoInv = false;
+let autoPromote = false;
+let click2Kick = true;
+let shiftPunchClick2P = true;
 
 loadSettings();
+
+// Help page ================
+
+// pages 
+const helpPages = [
+    [
+        "&a/gu lobby &7- Checks the lobby for players and their guild info",
+        "&a/gu player <name> &7- Checks a specific player's guild info",
+        "&a/gu shiftpunch &7- Toggle shift-punch player for guild info",
+        "&a/gu trusted &7- Checks for members who are above trusted level",
+        "&a/qp <name> &7- Partys someone and disbands party if they dont accept <30s",
+        "&a/kickq <lvl, gexp, ratio> &7- Shows kick queue based on level, weekly gexp, or gexp/level ratio",
+        "&a/gu api <key> &7- Sets your Hypixel API key",
+        "&a/gu help <page> &7- Opens a command help page",
+    ],
+    [
+        "&a/gu reply4guilded &7- Toggles lobby sending messages if person is in a guild",
+        "&a/gu minlevel <level> &7- Sets the minimum SkyBlock level for lobby",
+        "&a/gu trustlevel <level> &7- Sets the trusted level",
+        "&a/gu defaultrank <rank> &7- Set this to your guild member rank",
+        "&a/gu trusttime <time> &7- Time in days someone needs to get trusted",
+        "&a/gu trustrank <rank> &7- Set this to your guild's trusted rank",
+        "&a/gu kickqlength <number> &7- Set how many members to show in /kickq",
+        "&a/gu apicount &7- Show Hypixel API calls in last 5 minutes",
+    ]
+];
+
+// actual functionallity
+function showHelp(page = 1) {
+    const maxPages = helpPages.length;
+    if (page < 1) page = 1;
+    if (page > maxPages) page = maxPages;
+
+    ChatLib.chat("&b&m----------------------------------------------------------------");
+    ChatLib.chat("&3                     GuildUtils Commands (Page " + page + "/" + maxPages + "):");
+
+    helpPages[page - 1].forEach(line => {
+        ChatLib.chat(line);
+    });
+
+    ChatLib.chat("&b&m----------------------------------------------------------------");
+}
+// ==========================
 
 
 
@@ -71,27 +119,6 @@ function loadSettings() {
 
 
 // Functions ================
-
-function showHelp() {
-    ChatLib.chat("&b&m----------------------------------------------------------------");
-    ChatLib.chat("&3                          GuildUtils Commands:");
-    ChatLib.chat("&a/gu lobby &7- Checks the lobby for players and their guild info");
-    ChatLib.chat("&a/gu player <name> &7- Checks a specific player's guild info");
-    ChatLib.chat("&a/gu shiftpunch &7- Toggle shift-punch player for guild info");
-    ChatLib.chat("&a/gu trusted &7- Checks for members who are above trusted level");
-    ChatLib.chat("&a/gu reply4guilded &7- Toggles lobby sending messages if person is in a guild");
-    ChatLib.chat("&a/kickq <lvl, gexp, ratio> &7- Shows kick queue based on level, weekly gexp, or gexp/level ratio");
-    ChatLib.chat("&a/gu api <key> &7- Sets your Hypixel API key");
-    ChatLib.chat("&a/gu kickqlength <number> &7- Set how many members to show in /kickq");
-    ChatLib.chat("&a/gu apicount &7- Show Hypixel API calls in last 5 minutes");
-    ChatLib.chat("&a/gu minlevel <level> &7- Sets the minimum SkyBlock level");
-    ChatLib.chat("&a/gu trustlevel <level> &7- Sets the trusted level");
-    ChatLib.chat("&a/gu defaultrank <rank> &7- Set this to your guild member rank");
-    ChatLib.chat("&a/gu trusttime <time> &7- Time in days someone needs to get trusted");
-    ChatLib.chat("&a/gu trustrank <rank> &7- Set this to your guild's trusted rank");
-    ChatLib.chat("&a/gu help &7- Shows this help menu");
-    ChatLib.chat("&b&m----------------------------------------------------------------");
-}
 
 function getLevelColor(level) {
     if (level <= 40) return "&7";       // Gray
@@ -181,7 +208,6 @@ function loadSettings() {
     }
 }
 
-// This and KickQ api warns might not be working (wip)
 function warnApiUsage() {
     if (apiRequestCount > 250 && !apiRequestWarned) {
         ChatLib.chat("&c[GuildUtils] Warning: High API usage! Slow down to avoid being ratelimited.");
@@ -263,8 +289,7 @@ function showKickQueue(members, mode) {
     ChatLib.chat("&3----------------------------------------------------------");
 }
 
-
-function warnKickqApiUsage() { 
+function warnKickqApiUsage() {
     if (!kickqApiWarned && kickqApiRequests > 250) {
         ChatLib.chat("&c[GuildUtils] Warning: High API usage! You may be rate-limited soon.");
         kickqApiWarned = true;
@@ -352,7 +377,6 @@ function runKickq(subcmd) {
             return;
         }
         const members = guildJson.guild.members;
-        // Fetch all SkyBlock levels in parallel
         Promise.all(members.map(member =>
             getSkyblockLevel(member.uuid).then(level => ({ uuid: member.uuid, expHistory: member.expHistory, level }))
         )).then(levelsArr => {
@@ -362,7 +386,6 @@ function runKickq(subcmd) {
                 let ratio = level > 0 ? gexp / level : 0;
                 return { uuid: obj.uuid, gexp, level, ratio };
             });
-            // Sort by subcmd
             if (subcmd === "lvl") {
                 entries.sort((a, b) => a.level - b.level || a.gexp - b.gexp);
             } else if (subcmd === "gexp") {
@@ -374,7 +397,6 @@ function runKickq(subcmd) {
                 return;
             }
             let lowest = entries.slice(0, KICKQ_QUEUE_LENGTH);
-
             Promise.all(lowest.map(entry => getAshconName(entry.uuid))).then(names => {
                 for (let i = 0; i < lowest.length; i++) lowest[i].name = names[i];
                 ChatLib.chat(`&3&b------------------- &bKick Queue (${subcmd}) &3-------------------`);
@@ -450,6 +472,35 @@ function formatGexp(gexp) {
 // ==========================
 
 
+// Quick Party ==============
+register("command", (name) => {
+    if (!name) {
+        ChatLib.chat("&cUsage: /qp <name>");
+        return;
+    }
+
+    ChatLib.command(`p ${name}`);
+
+    if (disbandTimeout) clearTimeout(disbandTimeout);
+    disbandTimeout = setTimeout(() => {
+        ChatLib.command("p disband");
+        ChatLib.chat(`&c[GuildUtils] &aNo one joined in time. Disbanding party.`);
+        disbandTimeout = null;
+    }, 30000);
+
+    const listener = register("chat", (msg, event) => {
+        if (msg.includes("&r&ejoined the party.&r") ){
+            ChatLib.chat(`&aSomeone joined the party! Disband cancelled.`);
+            if (disbandTimeout) {
+                clearTimeout(disbandTimeout);
+                disbandTimeout = null;
+            }
+            listener.unregister();
+        }
+    });
+}).setName("qp");
+// ==========================
+
 // KickQ Commands ===========
 register("command", (...args) => {
     if (!apiKey || apiKey.length < 32) {
@@ -467,7 +518,7 @@ register("command", (...args) => {
     ChatLib.chat(`&7(This may take some time)`);
     new Thread(() => {
         try {
-            
+            // Get YOUR UUID
             const uuidUrl = new java.net.URL(`https://api.ashcon.app/mojang/v2/user/${Player.getName()}`);
             apiRequestCount++;
             warnApiUsage();
@@ -485,7 +536,6 @@ register("command", (...args) => {
                 ChatLib.chat("&c[GuildUtils] Could not fetch your UUID. Make sure you are not nicked.");
                 return;
             }
-            
             const guildUrl = new java.net.URL(`https://api.hypixel.net/v2/guild?key=${apiKey}&player=${uuidJson.uuid}`);
             apiRequestCount++;
             warnApiUsage();
@@ -512,7 +562,6 @@ register("command", (...args) => {
                     for (let i = 0; i < Math.min(7, xpDays.length); i++) m.weeklyGexp += xpDays[i];
                 }
             });
-            // Sort by subcommand
             if (sub === "gexp") {
                 fetchLevelsForMembers(members, (membersWithLevels) => {
                     membersWithLevels.sort((a, b) => {
@@ -530,6 +579,7 @@ register("command", (...args) => {
                     showKickQueue(membersWithLevels, "lvl");
                 });
             } else if (sub === "ratio") {
+
                 fetchLevelsForMembers(members, (membersWithLevels) => {
                     membersWithLevels.forEach(m => {
                         m.ratio = m.sbLevel > 0 ? m.weeklyGexp / m.sbLevel : 0;
@@ -567,7 +617,8 @@ register("command", (...args) => {
     }
     const sub = args[0].toLowerCase();
     if (sub === "help") {
-        showHelp();
+        const page = args[1] ? parseInt(args[1]) || 1 : 1; 
+        showHelp(page);
         return;
     }
     if (sub === "api" && args[1]) {
@@ -756,6 +807,7 @@ register("command", (...args) => {
         ChatLib.chat(`&aFetching guild info for &b${name}&a...`);
         new Thread(() => {
             try {
+                // Fetch UUID from Ashcon
                 const url = new java.net.URL(`https://api.ashcon.app/mojang/v2/user/${name}`);
                 const conn = url.openConnection();
                 conn.setRequestMethod("GET");
@@ -926,7 +978,7 @@ if (sub === "trusted") {
             const members = guildJson.guild.members;
 
             members.forEach(member => {
-                // Only check default + trust ranks
+                // Only check default + trusted rank
                 if (member.rank !== defaultrank && member.rank !== trustrank) return;
 
                 new Thread(() => {
@@ -949,7 +1001,6 @@ if (sub === "trusted") {
                             if (nameJson && nameJson.username) name = nameJson.username;
                         } catch (e) { /* ignore name lookup errors */ }
 
-                        // SkyBlock profile fetch for highest level
                         const sbUrl = `https://api.hypixel.net/v2/skyblock/profiles?uuid=${uuid}&key=${apiKey}`;
                         logIfHypixelApi(sbUrl);
                         const sbConn = new java.net.URL(sbUrl).openConnection();
@@ -976,6 +1027,7 @@ if (sub === "trusted") {
                             });
                         }
 
+                        // Days in guild
                         let daysInGuild = 0;
                         if (member.joined) {
                             daysInGuild = Math.floor((now - member.joined) / (1000 * 60 * 60 * 24));
@@ -1104,8 +1156,19 @@ register("attackEntity", (entity) => {
                                 }
                                 const memberCount = guildJson.guild.members.length;
                                 ChatLib.chat(" ");
-                                const levelColor = getLevelColor(sbLevel);
-                                ChatLib.chat(`&8[${levelColor}${sbLevel}&8] &b${name}&a is in &b${guildName}&a as &b${rank}&a for the last &b${timeStr}&a, XP this week: &b${formatGexp(weeklyXP)}&a, Guild size: &b${memberCount}/125`);
+                            const levelColor = getLevelColor(sbLevel);
+                            const hoverText = `&8[${levelColor}${sbLevel}&8] &b${name} ${tagColor}[${guildTag}]
+&aGuild: ${tagColor}${guildName}
+&aRank: &b${rank}
+&aDays in guild: &b${timeStr}
+&aWeekly GEXP: &b${formatGexp(weeklyXP)}
+&aGuild Size: &b${memberCount}/125
+&5(Click to Party)`
+
+                            const msg = new TextComponent(`&8[${levelColor}${sbLevel}&8] &b${name} ${tagColor}[${guildTag}]`)
+                        .setClick("run_command", `/p ${name}`)
+                        .setHover("show_text", `${hoverText}`);
+                    ChatLib.chat(msg);
                             } else {
                                 ChatLib.chat(" ");
                                 const levelColor = getLevelColor(sbLevel);
