@@ -472,34 +472,6 @@ function formatGexp(gexp) {
 // ==========================
 
 
-// Quick Party ==============
-register("command", (name) => {
-    if (!name) {
-        ChatLib.chat("&cUsage: /qp <name>");
-        return;
-    }
-
-    ChatLib.command(`p ${name}`);
-
-    if (disbandTimeout) clearTimeout(disbandTimeout);
-    disbandTimeout = setTimeout(() => {
-        ChatLib.command("p disband");
-        ChatLib.chat(`&c[GuildUtils] &aNo one joined in time. Disbanding party.`);
-        disbandTimeout = null;
-    }, 30000);
-
-    const listener = register("chat", (msg, event) => {
-        if (msg.includes("&r&ejoined the party.&r") ){
-            ChatLib.chat(`&aSomeone joined the party! Disband cancelled.`);
-            if (disbandTimeout) {
-                clearTimeout(disbandTimeout);
-                disbandTimeout = null;
-            }
-            listener.unregister();
-        }
-    });
-}).setName("qp");
-// ==========================
 
 // KickQ Commands ===========
 register("command", (...args) => {
