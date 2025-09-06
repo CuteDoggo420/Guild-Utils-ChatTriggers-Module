@@ -1,0 +1,97 @@
+[
+    {
+        "category": "Lobby",
+        "settings": [
+            {
+                "type": 6,
+                "name": "SreplyIfGuilded",
+                "value": true
+            },
+            {
+                "type": 4,
+                "name": "SminLevel",
+                "value": "50"
+            },
+            {
+                "type": 6,
+                "name": "SlobbyClick2P",
+                "value": true
+            },
+            {
+                "type": 6,
+                "name": "SlobbyAutoInv",
+                "value": false
+            }
+        ]
+    },
+    {
+        "category": "Trusted",
+        "settings": [
+            {
+                "type": 4,
+                "name": "StrustedLevel",
+                "value": ""
+            },
+            {
+                "type": 4,
+                "name": "StrustedTime",
+                "value": ""
+            },
+            {
+                "type": 4,
+                "name": "StrustedRank",
+                "value": "Trusted"
+            },
+            {
+                "type": 4,
+                "name": "SdefaultRank",
+                "value": "Member"
+            },
+            {
+                "type": 6,
+                "name": "SautoPromote",
+                "value": false
+            }
+        ]
+    },
+    {
+        "category": "Kick Queue",
+        "settings": [
+            {
+                "type": 6,
+                "name": "Sclick2Kick",
+                "value": true
+            },
+            {
+                "type": 4,
+                "name": "SkickQueueLength",
+                "value": ""
+            }
+        ]
+    },
+    {
+        "category": "Shift Punch",
+        "settings": [
+            {
+                "type": 6,
+                "name": "SshiftPunch",
+                "value": false
+            },
+            {
+                "type": 6,
+                "name": "SshiftPunchClick2P",
+                "value": true
+            }
+        ]
+    },
+    {
+        "category": "Api Key",
+        "settings": [
+            {
+                "type": 4,
+                "name": "SapiKey",
+                "value": ""
+            }
+        ]
+    }
+]
